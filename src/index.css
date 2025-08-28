@@ -118,3 +118,28 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* TipTap Editor Styles */
+.tiptap {
+  padding: 1rem;
+  border: 1px solid theme('colors.slate.300');
+  border-radius: 0.5rem;
+  min-height: 20rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.tiptap:focus-within {
+  border-color: theme('colors.indigo.500');
+  box-shadow: 0 0 0 1px theme('colors.indigo.500');
+}
+
+.tiptap p {
+  margin: 0;
+}
+
+.tiptap h1, .tiptap h2, .tiptap h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.2;
+}
