@@ -1,69 +1,75 @@
-# React + TypeScript + Vite
+# Codex
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A next-generation writing application designed for a calm, focused, and powerful creative experience.
 
-Currently, two official plugins are available:
+## Guiding Principles
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Codex is being built with a clear vision for the user experience. All features and design choices are measured against these three core principles:
 
-## Expanding the ESLint configuration
+* **Calm:** A clean, minimalist, and distraction-free interface.
+* **Focused:** The writing experience is paramount. UI elements use progressive disclosure to stay out of the user's way until needed.
+* **Powerful:** Complex features are translated into simple, intuitive user actions.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## ✨ Current Features (Client-Side)
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+This repository contains the client-side implementation of Codex. All data is currently mocked in the client's state and is not persistent.
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+* **Project & Document Management:** Full CRUD (Create, Rename, Delete) for both projects and documents.
+* **Persistent & Responsive Layout:** A collapsible and resizable sidebar that remembers its size and state across sessions.
+* **Context-Aware Navigation:** The sidebar and breadcrumbs intelligently update based on the user's location within the app.
+* **Dynamic Views:** Seamlessly switch between a project dashboard, a project-specific document list, and the main editor.
+* **Rich Text Editor:** Powered by TipTap, featuring a Notion-style floating bubble menu for text formatting.
+* **User Preferences:** A settings system (persisted to `localStorage`) to control UI features, such as switching between a bubble menu and a static toolbar.
+* **Theming:** Full Light, Dark, and System theme support.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 💻 Tech Stack & Architecture
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+* **Framework:** [React](https://react.dev/) (with [Vite](https://vitejs.dev/))
+* **Language:** [TypeScript](https://www.typescriptlang.org/)
+* **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+* **Component Library:** [Shadcn/ui](https://ui.shadcn.com/)
+* **Editor:** [TipTap](https://tiptap.dev/)
+* **State Management:** [Zustand](https://zustand-demo.pmnd.rs/)
+* **Routing:** [React Router](https://reactrouter.com/)
+* **Architecture:** [Feature-Sliced Design (FSD)](https://feature-sliced.design/)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🚀 Getting Started
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Prerequisites
+
+* Node.js (v18 or higher)
+* npm or a compatible package manager
+
+### Installation
+
+1.  **Clone the repository:**
+    ```bash
+    git clone <your-repository-url>
+    cd writer-app
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Set up environment variables:**
+
+    Create a file named `.env.local` in the root of the project. This will be used for the Supabase integration in the next steps.
+    ```env
+    VITE_SUPABASE_URL="YOUR_SUPABASE_PROJECT_URL"
+    VITE_SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_PUBLIC_KEY"
+    ```
+
+4.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
+    The application will be available at `http://localhost:5173`.
+
+## 📜 Available Scripts
+
+* `npm run dev`: Starts the development server.
+* `npm run build`: Builds the application for production.
+* `npm run lint`: Lints the codebase using ESLint.
+* `npm run preview`: Serves the production build locally.
