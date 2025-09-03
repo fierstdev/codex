@@ -1,35 +1,28 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { ChevronsLeft, PlusCircle, Folder } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Folder, PlusCircle, Settings } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from '@/shared/components/ui/tooltip';
-import { Separator } from '@/shared/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/components/ui/tooltip';
 import { useProjectStore } from '@/entities/project/model/project.store';
 import { useDocumentStore } from '@/entities/document/model/document.store';
 import { Dialog, DialogTrigger } from '@/shared/components/ui/dialog';
 import { CreateProjectDialogContent } from '@/features/project-create/ui/CreateProjectDialog';
-import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger,
-} from '@/shared/components/ui/accordion';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/components/ui/collapsible';
 import { DocumentSidebarLink } from '@/entities/document/ui/DocumentSidebarLink';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
-
+import { cn } from '@/shared/lib/utils';
+import { UserNav } from '@/features/auth/ui/UserNav';
+import { SettingsDialog } from '@/features/settings-menu/ui/SettingsDialog';
+import { ProjectSidebarLink } from '@/entities/project/ui/ProjectSidebarLink';
+import { Separator } from '@radix-ui/react-menubar';
 
 interface SidebarProps {
 	isCollapsed: boolean;
-	onCollapse: () => void;
 }
 
-export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
-	const { projects, activeProjectId, setActiveProject } = useProjectStore();
+export function Sidebar({ isCollapsed }: SidebarProps) {
+	const navigate = useNavigate();
+	const { projects, activeProjectId, selectProject, toggleProjectExpansion } = useProjectStore();
 	const { documents } = useDocumentStore();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const { documentId } = useParams<{ documentId: string }>();
@@ -38,15 +31,21 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
 		if (documentId) {
 			const currentDocument = documents.find(d => d.id === documentId);
 			if (currentDocument && currentDocument.projectId !== activeProjectId) {
-				setActiveProject(currentDocument.projectId);
+				selectProject(currentDocument.projectId);
 			}
 		}
-	}, [documentId, documents, activeProjectId, setActiveProject]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [documentId, documents]);
+
+	const handleNavigateToProject = (projectId: string) => {
+		selectProject(projectId);
+		navigate('/');
+	};
 
 	if (isCollapsed) {
 		return (
 			<TooltipProvider delayDuration={100}>
-				<div className="flex h-full flex-col items-center p-2 pt-4 relative">
+				<div className="flex h-full flex-col items-center py-4">
 					<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -71,7 +70,7 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
 											variant={activeProjectId === project.id ? 'secondary' : 'ghost'}
 											size="icon"
 											className="h-9 w-9"
-											onClick={() => setActiveProject(project.id)}
+											onClick={() => handleNavigateToProject(project.id)}
 										>
 											<Folder className="h-5 w-5" />
 											<span className="sr-only">{project.name}</span>
@@ -82,11 +81,18 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
 							))}
 						</nav>
 					</ScrollArea>
-					<Separator className="mt-auto"/>
-					<div className="pt-2">
-						<Button onClick={onCollapse} variant="outline" size="icon" className="h-9 w-9">
-							<ChevronsLeft className="h-4 w-4 rotate-180" />
-						</Button>
+					<div className="mt-auto flex flex-col items-center gap-2">
+						<SettingsDialog>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button variant="ghost" size="icon" className="h-9 w-9">
+										<Settings className="h-5 w-5" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent side="right">Settings</TooltipContent>
+							</Tooltip>
+						</SettingsDialog>
+						<UserNav isCollapsed={isCollapsed} />
 					</div>
 				</div>
 			</TooltipProvider>
@@ -95,66 +101,75 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
 
 	return (
 		<TooltipProvider delayDuration={100}>
-			<div className="flex h-full flex-col p-2 pt-4 relative">
-				<div className="flex items-center justify-between pb-2 px-2">
-					<h2 className="text-lg font-semibold tracking-tight">Projects</h2>
-					<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<DialogTrigger asChild>
-									<Button variant="ghost" size="icon" className="h-8 w-8">
-										<PlusCircle className="h-5 w-5" />
-										<span className="sr-only">Create Project</span>
-									</Button>
-								</DialogTrigger>
-							</TooltipTrigger>
-							<TooltipContent>Create new project</TooltipContent>
-						</Tooltip>
-						<CreateProjectDialogContent onClose={() => setIsDialogOpen(false)} />
-					</Dialog>
+			<div className="flex h-full flex-col">
+				<div className={cn("p-2 pt-4 px-4")}>
+					{/* Top section */}
 				</div>
-				<Separator />
-				<ScrollArea className="flex-1 -mx-2">
-					<Accordion
-						type="single"
-						collapsible
-						value={activeProjectId ?? ''}
-						onValueChange={(value) => setActiveProject(value || null)} // Corrected logic
-					>
-						{projects.map((project) => {
-							const projectDocuments = documents.filter(
-								(doc) => doc.projectId === project.id
-							);
-							return (
-								<AccordionItem value={project.id} key={project.id} className="border-none">
-									<AccordionTrigger className="justify-start gap-3 rounded-md px-3 py-2 text-muted-foreground hover:text-primary hover:no-underline">
-										<span className="truncate">{project.name}</span>
-									</AccordionTrigger>
-									<AccordionContent className="pl-4">
-										{projectDocuments.length > 0 ? (
-											projectDocuments.map((doc) => (
+				<ScrollArea className="flex-1">
+					<div className="px-4">
+						<div className="flex items-center justify-between pb-2">
+							<h3 className="font-semibold tracking-tight text-sm">
+								Projects
+							</h3>
+							<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<DialogTrigger asChild>
+											<Button variant="ghost" size="icon" className="h-8 w-8">
+												<PlusCircle className="h-5 w-5" />
+												<span className="sr-only">Create Project</span>
+											</Button>
+										</DialogTrigger>
+									</TooltipTrigger>
+									<TooltipContent side="right">Create new project</TooltipContent>
+								</Tooltip>
+								<CreateProjectDialogContent onClose={() => setIsDialogOpen(false)} />
+							</Dialog>
+						</div>
+						<div className="flex flex-col gap-1">
+							{projects.map((project) => (
+								<Collapsible
+									key={project.id}
+									open={activeProjectId === project.id}
+									onOpenChange={() => toggleProjectExpansion(project.id)}
+								>
+									<ProjectSidebarLink project={project}>
+										<CollapsibleTrigger asChild>
+											<Button
+												variant="ghost"
+												className="w-full justify-start gap-2 p-2 h-9"
+												onDoubleClick={() => handleNavigateToProject(project.id)}
+											>
+												<span className="truncate flex-1 text-left">{project.name}</span>
+											</Button>
+										</CollapsibleTrigger>
+									</ProjectSidebarLink>
+									<CollapsibleContent className="pl-4">
+										{documents
+											.filter((doc) => doc.projectId === project.id)
+											.map((doc) => (
 												<DocumentSidebarLink
 													key={doc.id}
 													document={doc}
 													isCollapsed={isCollapsed}
 												/>
-											))
-										) : (
-											<div className="px-3 py-2 text-xs text-muted-foreground">
-												No documents yet.
-											</div>
-										)}
-									</AccordionContent>
-								</AccordionItem>
-							);
-						})}
-					</Accordion>
+											))}
+									</CollapsibleContent>
+								</Collapsible>
+							))}
+						</div>
+					</div>
 				</ScrollArea>
-				<Separator />
-				<div className="p-2">
-					<Button onClick={onCollapse} variant="outline" size="icon" className="h-9 w-full">
-						<ChevronsLeft className="h-4 w-4" />
-					</Button>
+				<div className="mt-auto border-t">
+					<div className="p-2 flex flex-col gap-2">
+						<SettingsDialog>
+							<Button variant="ghost" className="w-full justify-start gap-2">
+								<Settings className="h-4 w-4" />
+								<span>Settings</span>
+							</Button>
+						</SettingsDialog>
+					</div>
+					<UserNav isCollapsed={isCollapsed} />
 				</div>
 			</div>
 		</TooltipProvider>

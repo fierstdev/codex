@@ -15,7 +15,10 @@ interface DocumentState {
 	activeDocumentId: string | null;
 	setActiveDocument: (documentId: string | null) => void;
 	updateDocumentContent: (documentId: string, content: JSONContent) => void;
-	addDocument: (projectId: string, title: string) => Document; // <-- This line is the fix
+	addDocument: (projectId: string, title: string) => Document;
+	renameDocument: (documentId: string, title: string) => void;
+	deleteDocument: (documentId: string) => void;
+	deleteDocumentsByProjectId: (projectId: string) => void;
 }
 
 export const useDocumentStore = create<DocumentState>((set, _get) => ({
@@ -41,4 +44,20 @@ export const useDocumentStore = create<DocumentState>((set, _get) => ({
 		set((state) => ({ documents: [...state.documents, newDocument] }));
 		return newDocument;
 	},
+	renameDocument: (documentId, title) =>
+		set((state) => ({
+			documents: state.documents.map((doc) =>
+				doc.id === documentId ? { ...doc, title, updatedAt: new Date().toISOString() } : doc
+			),
+		})),
+	deleteDocument: (documentId) =>
+		set((state) => ({
+			documents: state.documents.filter((doc) => doc.id !== documentId),
+			// If the deleted doc was active, unset it
+			activeDocumentId: state.activeDocumentId === documentId ? null : state.activeDocumentId,
+		})),
+	deleteDocumentsByProjectId: (projectId) =>
+		set((state) => ({
+			documents: state.documents.filter((doc) => doc.projectId !== projectId),
+		})),
 }));

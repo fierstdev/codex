@@ -3,7 +3,7 @@ import React from 'react';
 
 export function Providers({ children}: { children: React.ReactNode }) {
 	return(
-		<ThemeProvider defaultTheme="dark" storageKey="codex-ui-theme">
+		<ThemeProvider defaultTheme="light" storageKey="codex-ui-theme">
 			{children}
 		</ThemeProvider>
 	)

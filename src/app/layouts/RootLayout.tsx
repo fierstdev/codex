@@ -10,6 +10,10 @@ import {
 import { Sidebar } from '@/widgets/Sidebar/Sidebar';
 import { cn } from '@/shared/lib/utils';
 
+export type AppLayoutContext = {
+	onSidebarToggle: () => void;
+};
+
 // Helper to get layout from localStorage
 const getInitialLayout = (): number[] => {
 	const layout = localStorage.getItem('codex-sidebar-layout');
@@ -47,7 +51,7 @@ export function RootLayout() {
 			<ResizablePanelGroup
 				direction="horizontal"
 				onLayout={onLayout}
-				className="min-h-screen w-full rounded-none border-0"
+				className="min-h-screen w-full"
 			>
 				<ResizablePanel
 					ref={sidebarPanelRef}
@@ -62,12 +66,11 @@ export function RootLayout() {
 				>
 					<Sidebar
 						isCollapsed={isCollapsed}
-						onCollapse={toggleSidebar}
 					/>
 				</ResizablePanel>
 				<ResizableHandle withHandle />
 				<ResizablePanel defaultSize={layout[1]}>
-					<Outlet />
+					<Outlet context={{ onSidebarToggle: toggleSidebar } satisfies AppLayoutContext} />
 				</ResizablePanel>
 			</ResizablePanelGroup>
 		</Providers>

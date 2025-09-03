@@ -12,7 +12,7 @@ import { useDocumentStore } from '@/entities/document/model/document.store';
 
 export function Breadcrumbs() {
 	const { documentId } = useParams<{ documentId: string }>();
-	const { projects, activeProjectId, setActiveProject } = useProjectStore();
+	const { projects, activeProjectId, selectProject } = useProjectStore();
 	const { documents } = useDocumentStore();
 
 	const activeDocument = documentId ? documents.find(d => d.id === documentId) : undefined;
@@ -20,13 +20,13 @@ export function Breadcrumbs() {
 	const activeProject = projects.find(p => p.id === (projectIdForActiveDoc || activeProjectId));
 
 	const handleGoToProjects = () => {
-		setActiveProject(null);
+		selectProject(null);
 	};
 
 	const isOnProjectDashboard = !activeProject && !activeDocument;
 
 	return (
-		<Breadcrumb className="mb-4">
+		<Breadcrumb>
 			<BreadcrumbList>
 				<BreadcrumbItem>
 					{isOnProjectDashboard ? (
@@ -43,7 +43,7 @@ export function Breadcrumbs() {
 						<BreadcrumbItem>
 							{activeDocument ? (
 								<BreadcrumbLink asChild>
-									<Link to="/" onClick={() => setActiveProject(activeProject.id)}>
+									<Link to="/" onClick={() => selectProject(activeProject.id)}>
 										{activeProject.name}
 									</Link>
 								</BreadcrumbLink>

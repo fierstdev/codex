@@ -1,7 +1,7 @@
 import { useParams, Navigate } from 'react-router-dom';
 import { useDocumentStore } from '@/entities/document/model/document.store';
 import { Editor } from '@/widgets/Editor/Editor';
-import { Breadcrumbs } from '@/widgets/Breadcrumbs/Breadcrumbs';
+import { ContentHeader } from '@/widgets/ContentHeader/ContentHeader';
 
 export function EditorPage() {
 	const { documentId } = useParams<{ documentId: string }>();
@@ -24,9 +24,11 @@ export function EditorPage() {
 	}
 
 	return (
-		<div className="p-6">
-			<Breadcrumbs />
-			<Editor document={document} />
+		<div className="flex flex-col h-full">
+			<ContentHeader />
+			<div className="p-6 flex-1">
+				<Editor document={document} />
+			</div>
 		</div>
 	);
 }
