@@ -1,12 +1,12 @@
 import React from 'react';
 import { Folder } from 'lucide-react';
 import { Card, CardFooter, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import type { Project } from '../model/types';
+import type { ProjectWithCount } from '@/entities/project/hooks/useProjectsWithCounts.ts';
 import { cn } from '@/shared/lib/utils';
 
 
 interface ProjectCardProps {
-	project: Project;
+	project: ProjectWithCount;
 	onClick: () => void;
 	children?: React.ReactNode;
 	className?: string;

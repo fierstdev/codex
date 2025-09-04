@@ -14,6 +14,8 @@ import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
 import { UserNav } from '@/features/auth/ui/UserNav';
 import { ProjectSidebarLink } from '@/entities/project/ui/ProjectSidebarLink';
+import { useProjectsWithCounts } from '@/entities/project/hooks/useProjectsWithCounts';
+
 
 interface SidebarProps {
 	isCollapsed: boolean;
@@ -21,6 +23,7 @@ interface SidebarProps {
 
 export function Sidebar({ isCollapsed }: SidebarProps) {
 	const navigate = useNavigate();
+	const projectsWithCounts = useProjectsWithCounts();
 	const { projects, activeProjectId, selectProject, toggleProjectExpansion } = useProjectStore();
 	const { documents } = useDocumentStore();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -62,7 +65,7 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
 					<Separator />
 					<ScrollArea className="flex-1 w-full">
 						<nav className="flex flex-col items-center gap-1 py-2">
-							{projects.map((project) => (
+							{projectsWithCounts.map((project) => (
 								<Tooltip key={project.id}>
 									<TooltipTrigger asChild>
 										<Button
@@ -94,16 +97,16 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
 				<div className={cn("p-2 pt-4 px-4")}></div>
 				<ScrollArea className="flex-1">
 					<div className="px-4">
-						<div className="flex items-center justify-between pb-2">
-							<h3 className="font-semibold tracking-tight text-sm">
+						<div className="flex items-center gap-2 pb-2">
+							<h3 className="flex-1 font-semibold tracking-tight text-sm truncate min-w-0">
 								Projects
 							</h3>
 							<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 								<Tooltip>
 									<TooltipTrigger asChild>
 										<DialogTrigger asChild>
-											<Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-												<PlusCircle className="h-5 w-5" />
+											<Button variant="ghost" size="icon" className="size-8 flex-shrink-0">
+												<PlusCircle className="size-5" />
 												<span className="sr-only">Create Project</span>
 											</Button>
 										</DialogTrigger>
@@ -114,7 +117,7 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
 							</Dialog>
 						</div>
 						<div className="flex flex-col gap-1">
-							{projects.map((project) => (
+							{projectsWithCounts.map((project) => (
 								<Collapsible
 									key={project.id}
 									open={activeProjectId === project.id}

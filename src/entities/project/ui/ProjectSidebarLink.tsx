@@ -1,10 +1,10 @@
 import React from 'react';
-import type { Project } from '@/entities/project/model/types';
+import type { ProjectWithCount } from '../hooks/useProjectsWithCounts'
 import { ProjectActions } from '@/features/project-actions/ui/ProjectActions';
 
 
 interface ProjectSidebarLinkProps {
-	project: Project;
+	project: ProjectWithCount;
 	children: React.ReactNode;
 }
 
