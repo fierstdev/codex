@@ -2,10 +2,12 @@ import { useParams, Navigate } from 'react-router-dom';
 import { useDocumentStore } from '@/entities/document/model/document.store';
 import { Editor } from '@/widgets/Editor/Editor';
 import { ContentHeader } from '@/widgets/ContentHeader/ContentHeader';
+import { useSettingsStore } from '@/entities/settings/model/settings.store.ts';
 
 export function EditorPage() {
 	const { documentId } = useParams<{ documentId: string }>();
 	const { documents } = useDocumentStore();
+	const { fontFamily } = useSettingsStore();
 
 	if (!documentId) {
 		return <Navigate to="/" />;
@@ -26,7 +28,7 @@ export function EditorPage() {
 	return (
 		<div className="flex flex-col h-full">
 			<ContentHeader />
-			<div className="p-6 flex-1">
+			<div className="p-6 flex-1" data-font={fontFamily}>
 				<Editor document={document} />
 			</div>
 		</div>

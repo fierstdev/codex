@@ -7,9 +7,9 @@ import {
 import { Button } from '@/shared/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover';
 import { Separator } from '@/shared/components/ui/separator';
-import { ThemeToggle } from '@/features/theme-toggle/ui/ThemeToggle';
 import { cn } from '@/shared/lib/utils';
-import { ChevronsUpDown } from 'lucide-react';
+import { ChevronsRight, LogOut, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface UserNavProps {
 	isCollapsed: boolean;
@@ -42,26 +42,28 @@ export function UserNav({ isCollapsed }: UserNavProps) {
               austin@example.com
             </span>
 					</div>
-					<ChevronsUpDown className={cn("h-4 w-4 ml-auto text-muted-foreground", isCollapsed && "hidden")} />
+					<ChevronsRight className={cn("h-4 w-4 ml-auto text-muted-foreground", isCollapsed && "hidden")} />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-64" side="right" align="start">
-				<div className="p-2">
-					<div className="flex flex-col space-y-1 mb-4">
-						<p className="text-sm font-medium leading-none">Austin</p>
-						<p className="text-xs leading-none text-muted-foreground">
-							austin@example.com
-						</p>
-					</div>
-					<Separator />
-					<div className="py-2">
-						<ThemeToggle />
-					</div>
-					<Separator />
-					<Button variant="ghost" className="w-full justify-start mt-2" onClick={toggleLogin}>
-						Log out
-					</Button>
+			<PopoverContent className="w-64 p-2" side="right" align="start">
+				<div className="flex flex-col space-y-1 mb-2">
+					<p className="text-sm font-medium leading-none">Austin</p>
+					<p className="text-xs leading-none text-muted-foreground">
+						austin@example.com
+					</p>
 				</div>
+				<Separator />
+				<Button asChild variant="ghost" className="w-full justify-start mt-2">
+					<Link to="/settings">
+						<Settings className="mr-2 h-4 w-4" />
+						Settings
+					</Link>
+				</Button>
+				<Separator className="my-2" />
+				<Button variant="ghost" className="w-full justify-start" onClick={toggleLogin}>
+					<LogOut className="mr-2 h-4 w-4" />
+					Log out
+				</Button>
 			</PopoverContent>
 		</Popover>
 	);

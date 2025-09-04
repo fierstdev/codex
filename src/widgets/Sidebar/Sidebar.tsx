@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Folder, PlusCircle, Settings } from 'lucide-react';
+import { Folder, PlusCircle } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/components/ui/tooltip';
+import { Separator } from '@/shared/components/ui/separator';
 import { useProjectStore } from '@/entities/project/model/project.store';
 import { useDocumentStore } from '@/entities/document/model/document.store';
 import { Dialog, DialogTrigger } from '@/shared/components/ui/dialog';
@@ -12,9 +13,7 @@ import { DocumentSidebarLink } from '@/entities/document/ui/DocumentSidebarLink'
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
 import { UserNav } from '@/features/auth/ui/UserNav';
-import { SettingsDialog } from '@/features/settings-menu/ui/SettingsDialog';
 import { ProjectSidebarLink } from '@/entities/project/ui/ProjectSidebarLink';
-import { Separator } from '@radix-ui/react-menubar';
 
 interface SidebarProps {
 	isCollapsed: boolean;
@@ -81,17 +80,7 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
 							))}
 						</nav>
 					</ScrollArea>
-					<div className="mt-auto flex flex-col items-center gap-2">
-						<SettingsDialog>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Button variant="ghost" size="icon" className="h-9 w-9">
-										<Settings className="h-5 w-5" />
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent side="right">Settings</TooltipContent>
-							</Tooltip>
-						</SettingsDialog>
+					<div className="mt-auto">
 						<UserNav isCollapsed={isCollapsed} />
 					</div>
 				</div>
@@ -102,9 +91,7 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
 	return (
 		<TooltipProvider delayDuration={100}>
 			<div className="flex h-full flex-col">
-				<div className={cn("p-2 pt-4 px-4")}>
-					{/* Top section */}
-				</div>
+				<div className={cn("p-2 pt-4 px-4")}></div>
 				<ScrollArea className="flex-1">
 					<div className="px-4">
 						<div className="flex items-center justify-between pb-2">
@@ -115,7 +102,7 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
 								<Tooltip>
 									<TooltipTrigger asChild>
 										<DialogTrigger asChild>
-											<Button variant="ghost" size="icon" className="h-8 w-8">
+											<Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
 												<PlusCircle className="h-5 w-5" />
 												<span className="sr-only">Create Project</span>
 											</Button>
@@ -140,7 +127,7 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
 												className="w-full justify-start gap-2 p-2 h-9"
 												onDoubleClick={() => handleNavigateToProject(project.id)}
 											>
-												<span className="truncate flex-1 text-left">{project.name}</span>
+												<span>{project.name}</span>
 											</Button>
 										</CollapsibleTrigger>
 									</ProjectSidebarLink>
@@ -161,14 +148,6 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
 					</div>
 				</ScrollArea>
 				<div className="mt-auto border-t">
-					<div className="p-2 flex flex-col gap-2">
-						<SettingsDialog>
-							<Button variant="ghost" className="w-full justify-start gap-2">
-								<Settings className="h-4 w-4" />
-								<span>Settings</span>
-							</Button>
-						</SettingsDialog>
-					</div>
 					<UserNav isCollapsed={isCollapsed} />
 				</div>
 			</div>
