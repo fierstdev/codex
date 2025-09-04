@@ -1,14 +1,10 @@
-import { useState, useEffect } from 'react';
+import { History, ChevronsRight } from 'lucide-react';
 import type { Document } from '@/entities/document/model/types';
-import type { Commit } from '@/entities/commit/model/types';
-import { getDocumentHistory } from '@/entities/commit/api/commitApi';
 import { CommitCard } from '@/entities/commit/ui/CommitCard';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import { Separator } from '@/shared/components/ui/separator';
-import { Button } from '@/shared/components/ui/button.tsx';
-import { ChevronsRight, History } from 'lucide-react';
-import { Tooltip, TooltipProvider } from '@radix-ui/react-tooltip';
-import { TooltipContent, TooltipTrigger } from '@/shared/components/ui/tooltip.tsx';
+import { Button } from '@/shared/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/components/ui/tooltip';
 
 interface HistorySidebarProps {
 	document: Document;
@@ -17,19 +13,6 @@ interface HistorySidebarProps {
 }
 
 export function HistorySidebar({ document, isCollapsed, onCollapse }: HistorySidebarProps) {
-	const [history, setHistory] = useState<Commit[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
-
-	useEffect(() => {
-		async function fetchHistory() {
-			setIsLoading(true);
-			const docPath = `/documents/${document.id}.json`;
-			const commits = await getDocumentHistory(docPath);
-			setHistory(commits);
-			setIsLoading(false);
-		}
-		fetchHistory();
-	}, [document.id]);
 
 	if (isCollapsed) {
 		return (
@@ -38,7 +21,7 @@ export function HistorySidebar({ document, isCollapsed, onCollapse }: HistorySid
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<Button variant="ghost" size="icon" onClick={onCollapse}>
-								<History className="size-5" />
+								<History className="h-5 w-5" />
 							</Button>
 						</TooltipTrigger>
 						<TooltipContent side="left">
@@ -63,19 +46,15 @@ export function HistorySidebar({ document, isCollapsed, onCollapse }: HistorySid
 			</div>
 			<Separator />
 			<ScrollArea className="flex-1">
-				{isLoading ? (
-					<p className="p-4 text-sm text-muted-foreground">Loading history...</p>
-				) : (
-					<div>
-						{history.length > 0 ? (
-							history.map((commit) => (
-								<CommitCard key={commit.oid} commit={commit} />
-							))
-						) : (
-							<p className="p-4 text-sm text-muted-foreground">No saved history for this document yet.</p>
-						)}
-					</div>
-				)}
+				<div>
+					{(document.history && document.history.length > 0) ? (
+						document.history.map((commit) => (
+							<CommitCard key={commit.oid} commit={commit} document={document} />
+						))
+					) : (
+						<p className="p-4 text-sm text-muted-foreground">No saved history for this document yet.</p>
+					)}
+				</div>
 			</ScrollArea>
 		</div>
 	);

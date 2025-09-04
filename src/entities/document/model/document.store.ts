@@ -1,27 +1,24 @@
 import { create } from 'zustand';
 import { diffWords } from 'diff';
 import type { Document } from './types';
-import type { JSONContent } from '@tiptap/core';
-import { generateText } from '@tiptap/react';
+import { generateText, type JSONContent } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { pfs } from '@/shared/lib/fs';
 import { writeFileAndCommit, removeFileAndCommit } from '@/shared/lib/git';
+import { getDocumentHistory } from '@/entities/commit/api/commitApi';
 
 function generateCommitMessage(oldContent: JSONContent, newContent: JSONContent): string {
 	const oldText = generateText(oldContent, [StarterKit]);
 	const newText = generateText(newContent, [StarterKit]);
-
 	const changes = diffWords(oldText, newText);
 	const firstChange = changes.find(part => part.added || part.removed);
 
 	if (!firstChange) {
-		return 'Update: No text changes detected';
+		return 'Format: No text changes';
 	}
-
 	const changeType = firstChange.added ? 'Add' : 'Delete';
-	const changeValue = firstChange.value.trim().substring(0, 40);
-	const ellipsis = changeValue.length === 40 ? '...' : '';
-
+	const changeValue = firstChange.value.trim().replace(/\s+/g, ' ').substring(0, 40);
+	const ellipsis = firstChange.value.trim().length > 40 ? '...' : '';
 	return `${changeType}: "${changeValue}${ellipsis}"`;
 }
 
@@ -36,6 +33,7 @@ interface DocumentState {
 	deleteDocumentsByProjectId: (projectId: string) => Promise<void>;
 	updateDocumentContent: (documentId: string, content: JSONContent) => Promise<void>;
 	setActiveDocument: (documentId: string | null) => void;
+	reloadDocument: (documentId: string) => Promise<void>;
 }
 
 export const useDocumentStore = create<DocumentState>((set, get) => ({
@@ -70,46 +68,15 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
 			updatedAt: new Date().toISOString(),
 		};
 
-		await writeFileAndCommit(`/documents/${newDocument.id}.json`, newDocument, `Create document: "${title}"`);
-		set((state) => ({ documents: [...state.documents, newDocument] }));
-		return newDocument;
-	},
+		const docPath = `/documents/${newDocument.id}.json`;
+		await writeFileAndCommit(docPath, newDocument, `Create: "${title}"`);
 
-	renameDocument: async (documentId, title) => {
-		const doc = get().documents.find(d => d.id === documentId);
-		if (!doc) return;
+		const history = await getDocumentHistory(docPath);
+		const docWithHistory = { ...newDocument, history };
+		await pfs.writeFile(docPath, JSON.stringify(docWithHistory, null, 2));
 
-		const updatedDoc = { ...doc, title, updatedAt: new Date().toISOString() };
-		await writeFileAndCommit(`/documents/${documentId}.json`, updatedDoc, `Rename to: "${title}"`);
-		set((state) => ({
-			documents: state.documents.map((d) => d.id === documentId ? updatedDoc : d),
-		}));
-	},
-
-	deleteDocument: async (documentId) => {
-		const docToDelete = get().documents.find(d => d.id === documentId);
-		if (!docToDelete) return;
-
-		await removeFileAndCommit(`/documents/${documentId}.json`, `Delete document: "${docToDelete.title}"`);
-
-		set((state) => ({
-			documents: state.documents.filter((doc) => doc.id !== documentId),
-			activeDocumentId: state.activeDocumentId === documentId ? null : state.activeDocumentId,
-		}));
-	},
-
-	deleteDocumentsByProjectId: async (projectId) => {
-		const docsToDelete = get().documents.filter(doc => doc.projectId === projectId);
-		if (docsToDelete.length === 0) return;
-
-		// Perform all file deletions and commits
-		for (const doc of docsToDelete) {
-			await removeFileAndCommit(`/documents/${doc.id}.json`, `Delete document: "${doc.title}"`);
-		}
-
-		set((state) => ({
-			documents: state.documents.filter(doc => doc.projectId !== projectId)
-		}));
+		set((state) => ({ documents: [...state.documents, docWithHistory] }));
+		return docWithHistory;
 	},
 
 	updateDocumentContent: async (documentId, content) => {
@@ -118,12 +85,62 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
 
 		const updatedDoc = { ...oldDoc, content, updatedAt: new Date().toISOString() };
 		const commitMessage = generateCommitMessage(oldDoc.content, content);
+		const docPath = `/documents/${documentId}.json`;
 
-		await writeFileAndCommit(`/documents/${documentId}.json`, updatedDoc, commitMessage);
+		await writeFileAndCommit(docPath, updatedDoc, commitMessage);
+
+		const history = await getDocumentHistory(docPath);
+		const docWithHistory = { ...updatedDoc, history };
+		await pfs.writeFile(docPath, JSON.stringify(docWithHistory, null, 2));
+
+		set((state) => ({
+			documents: state.documents.map((d) => d.id === documentId ? docWithHistory : d),
+		}));
+	},
+
+	reloadDocument: async (documentId: string) => {
+		try {
+			const fileContent = await pfs.readFile(`/documents/${documentId}.json`, 'utf8');
+			const reloadedDoc = JSON.parse(fileContent as string) as Document;
+
+			set((state) => ({
+				documents: state.documents.map((doc) =>
+					doc.id === documentId ? reloadedDoc : doc
+				),
+			}));
+		} catch (error) {
+			console.error(`Failed to reload document ${documentId}:`, error);
+		}
+	},
+
+	// Other actions remain the same for now, but should be updated to this pattern
+	renameDocument: async (documentId, title) => {
+		const doc = get().documents.find(d => d.id === documentId);
+		if (!doc) return;
+		const updatedDoc = { ...doc, title, updatedAt: new Date().toISOString() };
+		await writeFileAndCommit(`/documents/${documentId}.json`, updatedDoc, `Rename to: "${title}"`);
 		set((state) => ({
 			documents: state.documents.map((d) => d.id === documentId ? updatedDoc : d),
 		}));
 	},
-
+	deleteDocument: async (documentId) => {
+		const docToDelete = get().documents.find(d => d.id === documentId);
+		if (!docToDelete) return;
+		await removeFileAndCommit(`/documents/${documentId}.json`, `Delete: "${docToDelete.title}"`);
+		set((state) => ({
+			documents: state.documents.filter((doc) => doc.id !== documentId),
+			activeDocumentId: state.activeDocumentId === documentId ? null : state.activeDocumentId,
+		}));
+	},
+	deleteDocumentsByProjectId: async (projectId) => {
+		const docsToDelete = get().documents.filter(doc => doc.projectId === projectId);
+		if (docsToDelete.length === 0) return;
+		for (const doc of docsToDelete) {
+			await removeFileAndCommit(`/documents/${doc.id}.json`, `Delete: "${doc.title}"`);
+		}
+		set((state) => ({
+			documents: state.documents.filter(doc => doc.projectId !== projectId)
+		}));
+	},
 	setActiveDocument: (documentId) => set({ activeDocumentId: documentId }),
 }));

@@ -3,6 +3,25 @@ import { fs } from '@/shared/lib/fs';
 import type { Commit } from '../model/types';
 
 /**
+ * Reverts a specific file to its state at a given commit.
+ * @param filepath The relative path to the file from the repo root.
+ * @param oid The commit hash (oid) to revert to.
+ */
+export async function revertToFileCommit(filepath: string, oid: string) {
+	try {
+		await git.checkout({
+			fs,
+			dir: '/',
+			ref: oid,
+			filepaths: [filepath],
+		});
+	} catch (error) {
+		console.error(`Failed to revert ${filepath} to commit ${oid}:`, error);
+		throw error;
+	}
+}
+
+/**
  * Fetches the commit history for a given file path.
  * @param filepath The absolute path to the file in the virtual file system.
  * @returns A promise that resolves to an array of Commit objects.
