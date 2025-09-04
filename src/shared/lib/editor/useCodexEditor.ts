@@ -8,7 +8,7 @@ interface UseCodexEditorProps {
 }
 
 export function useCodexEditor({ content, onUpdate }: UseCodexEditorProps) {
-	const editor = useEditor({
+	return useEditor({
 		extensions: [
 			StarterKit.configure({
 				link: {
@@ -25,10 +25,8 @@ export function useCodexEditor({ content, onUpdate }: UseCodexEditorProps) {
 				class: 'prose dark:prose-invert max-w-none prose-sm sm:prose-base focus:outline-none',
 			},
 		},
-		onUpdate: ({ editor }) => {
+		onUpdate: ({editor}) => {
 			onUpdate(editor.getJSON());
 		},
 	});
-
-	return editor;
 }
