@@ -11,27 +11,26 @@ import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 
 interface ProjectActionsProps {
-	project: Project;
-	triggerClassName?: string;
+	project: Project & { documentCount: number };
 }
 
-export function ProjectActions({ project, triggerClassName }: ProjectActionsProps) {
+export function ProjectActions({ project }: ProjectActionsProps) {
 	const { renameProject, deleteProject } = useProjectStore();
 	const { deleteDocumentsByProjectId } = useDocumentStore();
 	const [isRenameOpen, setIsRenameOpen] = useState(false);
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 	const [newName, setNewName] = useState(project.name);
 
-	const handleRename = () => {
+	const handleRename = async () => {
 		if (newName.trim() && newName.trim() !== project.name) {
-			renameProject(project.id, newName.trim());
+			await renameProject(project.id, newName.trim());
 		}
 		setIsRenameOpen(false);
 	};
 
-	const handleDelete = () => {
-		deleteDocumentsByProjectId(project.id);
-		deleteProject(project.id);
+	const handleDelete = async () => {
+		await deleteDocumentsByProjectId(project.id);
+		await deleteProject(project.id);
 		setIsDeleteOpen(false);
 	};
 
@@ -41,7 +40,7 @@ export function ProjectActions({ project, triggerClassName }: ProjectActionsProp
 				<DropdownMenuTrigger asChild>
 					<Button
 						variant="ghost"
-						className={`h-8 w-8 p-0 ${triggerClassName}`}
+						className="h-8 w-8 p-0"
 						onClick={(e) => e.stopPropagation()}
 					>
 						<span className="sr-only">Open menu</span>

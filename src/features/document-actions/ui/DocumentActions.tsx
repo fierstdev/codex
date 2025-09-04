@@ -43,15 +43,15 @@ export function DocumentActions({ document }: DocumentActionsProps) {
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 	const [newName, setNewName] = useState(document.title);
 
-	const handleRename = () => {
+	const handleRename = async () => {
 		if (newName.trim() && newName.trim() !== document.title) {
-			renameDocument(document.id, newName.trim());
+			await renameDocument(document.id, newName.trim());
 		}
 		setIsRenameOpen(false);
 	};
 
-	const handleDelete = () => {
-		deleteDocument(document.id);
+	const handleDelete = async () => {
+		await deleteDocument(document.id);
 		setIsDeleteOpen(false);
 	};
 

@@ -1,53 +1,64 @@
 import { create } from 'zustand';
 import type { Project } from './types';
-
-// The mock data now serves as the initial state for our store
-const initialProjects: Project[] = [
-	{ id: '1', name: 'Codex Redesign' },
-	{ id: '2', name: 'Marketing Plan Q4' },
-	{ id: '3', name: 'Novel - The Final Chapter' },
-	{ id: '4', name: 'Personal Journal' },
-];
+import { pfs } from '@/shared/lib/fs';
+import { writeFileAndCommit } from '@/shared/lib/git';
 
 interface ProjectState {
 	projects: Project[];
+	isLoading: boolean;
 	activeProjectId: string | null;
-	addProject: (name: string) => void;
+	loadProjects: () => Promise<void>;
+	addProject: (name: string) => Promise<void>;
+	renameProject: (projectId: string, name: string) => Promise<void>;
+	deleteProject: (projectId: string) => Promise<void>;
 	selectProject: (projectId: string | null) => void;
 	toggleProjectExpansion: (projectId: string) => void;
-	renameProject: (projectId: string, name: string) => void;
-	deleteProject: (projectId: string) => void;
 }
 
-export const useProjectStore = create<ProjectState>((set) => ({
-	projects: initialProjects,
+export const useProjectStore = create<ProjectState>((set, get) => ({
+	projects: [],
+	isLoading: true,
 	activeProjectId: null,
-	addProject: (name: string) =>
-		set((state) => {
-			const newProject: Project = {
-				id: crypto.randomUUID(),
-				name,
-			};
-			return { projects: [...state.projects, newProject] };
-		}),
-	// Always sets the active project. Used for navigation.
-	selectProject: (projectId: string | null) =>
-		set({ activeProjectId: projectId }),
 
-	// Specifically for the sidebar accordion UI.
-	toggleProjectExpansion: (projectId: string) =>
+	loadProjects: async () => {
+		set({ isLoading: true });
+		try {
+			const projectsData = await pfs.readFile('/projects.json', 'utf8');
+			const projects = JSON.parse(projectsData as string);
+			set({ projects, isLoading: false });
+		} catch (error) {
+			console.error("Failed to load projects:", error);
+			set({ projects: [], isLoading: false });
+		}
+	},
+
+	addProject: async (name) => {
+		const newProject: Project = { id: crypto.randomUUID(), name };
+		const updatedProjects = [...get().projects, newProject];
+		await writeFileAndCommit('/projects.json', updatedProjects, `feat: add project '${name}'`);
+		set({ projects: updatedProjects });
+	},
+
+	renameProject: async (projectId, name) => {
+		const updatedProjects = get().projects.map((p) =>
+			p.id === projectId ? { ...p, name } : p
+		);
+		await writeFileAndCommit('/projects.json', updatedProjects, `feat: rename project to '${name}'`);
+		set({ projects: updatedProjects });
+	},
+
+	deleteProject: async (projectId) => {
+		const updatedProjects = get().projects.filter((p) => p.id !== projectId);
+		await writeFileAndCommit('/projects.json', updatedProjects, `feat: delete project`);
+		set({
+			projects: updatedProjects,
+			activeProjectId: get().activeProjectId === projectId ? null : get().activeProjectId,
+		});
+	},
+
+	selectProject: (projectId) => set({ activeProjectId: projectId }),
+	toggleProjectExpansion: (projectId) =>
 		set((state) => ({
-			activeProjectId: state.activeProjectId === projectId ? null : projectId,
-		})),
-	renameProject: (projectId, name) =>
-		set((state) => ({
-			projects: state.projects.map((p) =>
-				p.id === projectId ? { ...p, name } : p
-			),
-		})),
-	deleteProject: (projectId) =>
-		set((state) => ({
-			projects: state.projects.filter((p) => p.id !== projectId),
 			activeProjectId: state.activeProjectId === projectId ? null : state.activeProjectId,
 		})),
 }));
