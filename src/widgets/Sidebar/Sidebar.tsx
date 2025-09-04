@@ -24,7 +24,7 @@ interface SidebarProps {
 export function Sidebar({ isCollapsed }: SidebarProps) {
 	const navigate = useNavigate();
 	const projectsWithCounts = useProjectsWithCounts();
-	const { projects, activeProjectId, selectProject, toggleProjectExpansion } = useProjectStore();
+	const { activeProjectId, selectProject, toggleProjectExpansion } = useProjectStore();
 	const { documents } = useDocumentStore();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const { documentId } = useParams<{ documentId: string }>();
