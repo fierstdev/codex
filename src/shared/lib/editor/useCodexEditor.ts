@@ -1,6 +1,5 @@
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
 import type { JSONContent } from '@tiptap/core';
 
 interface UseCodexEditorProps {
@@ -11,11 +10,14 @@ interface UseCodexEditorProps {
 export function useCodexEditor({ content, onUpdate }: UseCodexEditorProps) {
 	const editor = useEditor({
 		extensions: [
-			StarterKit,
-			Link.configure({
-				openOnClick: false,
-				autolink: true,
+			StarterKit.configure({
+				link: {
+					openOnClick: false,
+					autolink: true,
+				}
 			}),
+			// SlashCommand,
+			// GlobalShortcuts
 		],
 		content: content,
 		editorProps: {

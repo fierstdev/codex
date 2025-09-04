@@ -26,10 +26,10 @@ export function CreateDocumentDialog({ projectId }: CreateDocumentDialogProps) {
 	const navigate = useNavigate();
 	const { addDocument, setActiveDocument } = useDocumentStore();
 
-	const handleCreateDocument = () => {
+	const handleCreateDocument = async () => { // Make the handler async
 		if (!title.trim()) return;
 
-		const newDoc = addDocument(projectId, title.trim());
+		const newDoc = await addDocument(projectId, title.trim()); // Await the promise
 		setActiveDocument(newDoc.id);
 		navigate(`/documents/${newDoc.id}`);
 
